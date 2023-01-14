@@ -1,4 +1,5 @@
 import { AuthService } from '@auth/auth.service';
+import { RefreshTokenDTO } from '@auth/dto/refresh-token.dto';
 import { SignInDTO } from '@auth/dto/signin.dto';
 import { TokensDTO } from '@auth/dto/tokens.dto';
 import { Body, Controller, Logger, Post } from '@nestjs/common';
@@ -19,5 +20,11 @@ export class AuthController {
   async signup(@Body() signInDTO: SignInDTO): Promise<TokensDTO> {
     this.logger.log('/signup');
     return this.authService.signup(signInDTO);
+  }
+
+  @Post('/refresh')
+  async refresh(@Body() refreshTokenDTO: RefreshTokenDTO): Promise<TokensDTO> {
+    this.logger.log('/refresh');
+    return this.authService.refresh(refreshTokenDTO);
   }
 }

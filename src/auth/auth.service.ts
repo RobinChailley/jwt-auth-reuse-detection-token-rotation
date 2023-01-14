@@ -1,7 +1,9 @@
+import { RefreshTokenDTO } from '@auth/dto/refresh-token.dto';
 import { SignInDTO } from '@auth/dto/signin.dto';
 import { TokensDTO } from '@auth/dto/tokens.dto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { RefreshTokensService } from '@refresh-tokens/refresh-tokens.service';
 import { UserEntity } from '@users/entities/user.entity';
 import { UsersService } from '@users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -11,6 +13,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly refreshTokensService: RefreshTokensService,
   ) {}
 
   async signin(signInDto: SignInDTO): Promise<TokensDTO> {
@@ -27,7 +30,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    return this.generateTokens(user);
+    return this.generateTokensAndSave(user);
   }
 
   async signup(signInDTO: SignInDTO): Promise<TokensDTO> {
@@ -35,24 +38,50 @@ export class AuthService {
     const salt = await bcrypt.genSalt();
     const hashPassword = await bcrypt.hash(password, salt);
 
-    const user = this.usersService.createUser({
+    const user = this.usersService.create({
       email,
       hashPassword,
       salt,
     });
 
-    await this.usersService.saveUser(user);
+    await this.usersService.save(user);
 
-    return this.generateTokens(user);
+    return this.generateTokensAndSave(user);
   }
 
-  private async generateTokens(user: UserEntity): Promise<TokensDTO> {
-    return {
-      accessToken: this.jwtService.sign({ id: user.id }, { expiresIn: '5min' }),
-      refreshToken: this.jwtService.sign(
-        { id: user.id },
-        { expiresIn: '365d' },
-      ),
-    };
+  async refresh(refreshToken: RefreshTokenDTO): Promise<TokensDTO> {
+    const { id } = this.jwtService.verify(refreshToken.refreshToken);
+    const user = await this.usersService.findOneById(id);
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const refreshTokenEntity = await this.refreshTokensService.findOne(
+      refreshToken.refreshToken,
+      user,
+    );
+
+    if (!refreshTokenEntity) {
+      this.refreshTokensService.deleteAllOfUser(user);
+      throw new UnauthorizedException();
+    }
+
+    this.refreshTokensService.deleteOne(refreshTokenEntity);
+
+    return this.generateTokensAndSave(user);
+  }
+
+  private generateToken(user: UserEntity, expiresIn: string): string {
+    return this.jwtService.sign({ id: user.id }, { expiresIn });
+  }
+
+  private generateTokensAndSave(user: UserEntity): TokensDTO {
+    const accessToken = this.generateToken(user, '5min');
+    const refreshToken = this.generateToken(user, '365d');
+
+    this.refreshTokensService.createAndSave(user, refreshToken);
+
+    return { accessToken, refreshToken };
   }
 }

@@ -11,7 +11,7 @@ export class UsersService {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  createUser(createUserDTO: CreateUserDTO): UserEntity {
+  create(createUserDTO: CreateUserDTO): UserEntity {
     const user = new UserEntity();
     const { email, hashPassword, salt } = createUserDTO;
 
@@ -22,7 +22,7 @@ export class UsersService {
     return user;
   }
 
-  async saveUser(user: UserEntity): Promise<void> {
+  async save(user: UserEntity): Promise<void> {
     try {
       await user.save();
     } catch (error) {
@@ -32,5 +32,9 @@ export class UsersService {
 
   async findOneByEmail(email: string): Promise<UserEntity> {
     return this.userRepository.findOne({ where: { email } });
+  }
+
+  async findOneById(id: number): Promise<UserEntity> {
+    return this.userRepository.findOne({ where: { id } });
   }
 }
