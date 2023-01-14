@@ -6,9 +6,11 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 
 @Entity()
+@Unique('unique_refresh_token_per_user', ['refreshToken', 'user'])
 export class RefreshTokenEntity extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
