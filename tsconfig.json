@@ -24,12 +24,15 @@
       "@auth/*": [
         "src/auth/*"
       ],
-      "@users/*": [
-        "src/users/*"
+      "@refresh-tokens/*": [
+        "src/refresh-tokens/*"
       ],
       "@shared/*": [
         "src/shared/*"
-      ]
+      ],
+      "@users/*": [
+        "src/users/*"
+      ],
     }
   }
 }

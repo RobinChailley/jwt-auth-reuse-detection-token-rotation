@@ -20,8 +20,9 @@ module.exports = {
         alias: {
           '@': './src',
           '@app': './src/app',
-          '@shared': './src/shared',
           '@auth': './src/auth',
+          '@refresh-tokens': './src/refresh-tokens',
+          '@shared': './src/shared',
           '@users': './src/users',
         },
         extensions: ['.js', '.ts', '.json'],

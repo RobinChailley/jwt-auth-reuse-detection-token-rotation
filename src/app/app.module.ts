@@ -4,6 +4,7 @@ import { AuthModule } from '@auth/auth.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshTokensModule } from '@refresh-tokens/refresh-tokens.module';
 import { DatabaseConfiguration } from '@shared/config/typeorm';
 import { UsersModule } from '@users/users.module';
 
@@ -19,6 +20,7 @@ import { UsersModule } from '@users/users.module';
     }),
     AuthModule,
     UsersModule,
+    RefreshTokensModule,
   ],
   providers: [AppService],
 })

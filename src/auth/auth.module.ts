@@ -6,14 +6,15 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshTokensModule } from '@refresh-tokens/refresh-tokens.module';
 import { UserEntity } from '@users/entities/user.entity';
 import { UsersModule } from '@users/users.module';
 
-console.log(process.env.JWT_SECRET);
 @Module({
   controllers: [AuthController],
   exports: [AuthService],
   imports: [
+    RefreshTokensModule,
     TypeOrmModule.forFeature([UserEntity]),
     UsersModule,
     PassportModule.register({
