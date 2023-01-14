@@ -7,9 +7,6 @@ export class UserEntity extends AbstractEntity {
   email: string;
 
   @Column({ type: 'varchar' })
-  password: string;
-
-  @Column({ type: 'varchar' })
   hashPassword: string;
 
   @Column({ type: 'varchar' })
