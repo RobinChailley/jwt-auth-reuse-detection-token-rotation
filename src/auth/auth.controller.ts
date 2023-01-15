@@ -2,7 +2,7 @@ import { AuthService } from '@auth/auth.service';
 import { RefreshTokenDTO } from '@auth/dto/refresh-token.dto';
 import { SignInDTO } from '@auth/dto/signin.dto';
 import { TokensDTO } from '@auth/dto/tokens.dto';
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Logger, Post } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
@@ -26,5 +26,11 @@ export class AuthController {
   async refresh(@Body() refreshTokenDTO: RefreshTokenDTO): Promise<TokensDTO> {
     this.logger.log('/refresh');
     return this.authService.refresh(refreshTokenDTO);
+  }
+
+  @Delete('/logout')
+  async logout(@Body() refreshTokenDTO: RefreshTokenDTO): Promise<void> {
+    this.logger.log('/logout');
+    return this.authService.logout(refreshTokenDTO);
   }
 }

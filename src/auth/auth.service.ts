@@ -72,6 +72,22 @@ export class AuthService {
     return this.generateTokensAndSave(user);
   }
 
+  async logout(refreshTokenDTO: RefreshTokenDTO): Promise<void> {
+    const { id } = this.jwtService.verify(refreshTokenDTO.refreshToken);
+    const user = await this.usersService.findOneById(id);
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const refreshTokenEntity = await this.refreshTokensService.findOne(
+      refreshTokenDTO.refreshToken,
+      user,
+    );
+
+    await this.refreshTokensService.deleteOne(refreshTokenEntity);
+  }
+
   private generateToken(user: UserEntity, expiresIn: string): string {
     return this.jwtService.sign({ id: user.id }, { expiresIn });
   }
