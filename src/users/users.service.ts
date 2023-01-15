@@ -37,4 +37,24 @@ export class UsersService {
   async findOneById(id: number): Promise<UserEntity> {
     return this.userRepository.findOne({ where: { id } });
   }
+
+  async findOneByIdOrThrow(id: number): Promise<UserEntity> {
+    const user = await this.findOneById(id);
+
+    if (!user) {
+      throw new InternalServerErrorException();
+    }
+
+    return user;
+  }
+
+  async findOneByEmailOrThrow(email: string): Promise<UserEntity> {
+    const user = await this.findOneByEmail(email);
+
+    if (!user) {
+      throw new InternalServerErrorException();
+    }
+
+    return user;
+  }
 }

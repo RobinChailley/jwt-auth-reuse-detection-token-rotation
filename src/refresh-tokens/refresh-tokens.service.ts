@@ -48,6 +48,19 @@ export class RefreshTokensService {
     });
   }
 
+  async findOneOrThrow(
+    refreshToken: string,
+    user: UserEntity,
+  ): Promise<RefreshTokenEntity> {
+    const token = await this.findOne(refreshToken, user);
+
+    if (!token) {
+      throw new InternalServerErrorException();
+    }
+
+    return token;
+  }
+
   async deleteOne(refreshTokenEntity: RefreshTokenEntity): Promise<void> {
     try {
       await refreshTokenEntity.remove();

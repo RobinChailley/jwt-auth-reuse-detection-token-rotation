@@ -90,6 +90,25 @@ describe('RefreshTokensService', () => {
     });
   });
 
+  describe('findOneOrThrow', () => {
+    it('should find one refresh token', async () => {
+      expect.assertions(2);
+      service.findOne = jest.fn().mockResolvedValue(refreshToken);
+
+      const result = await service.findOneOrThrow('token', user);
+
+      expect(result).toBe(refreshToken);
+      expect(service.findOne).toBeCalledWith('token', user);
+    });
+
+    it('should throw an error if refresh token is not found', () => {
+      expect.assertions(1);
+      service.findOne = jest.fn().mockResolvedValue(undefined);
+
+      expect(service.findOneOrThrow('token', user)).rejects.toThrow();
+    });
+  });
+
   describe('deleteOne', () => {
     it('should delete one refresh token', async () => {
       expect.assertions(1);

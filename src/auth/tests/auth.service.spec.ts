@@ -187,7 +187,7 @@ describe('AuthService', () => {
       };
       jwtService.verify = jest.fn().mockReturnValue({ id: 'user' });
       usersService.findOneById = jest.fn().mockResolvedValue('user');
-      refreshTokensService.findOne = jest
+      refreshTokensService.findOneOrThrow = jest
         .fn()
         .mockResolvedValue('refreshToken');
       refreshTokensService.deleteOne = jest.fn();
@@ -202,7 +202,7 @@ describe('AuthService', () => {
     it('should find and delete the refresh token', async () => {
       await service.logout(refreshTokenDTO);
 
-      expect(refreshTokensService.findOne).toBeCalledWith(
+      expect(refreshTokensService.findOneOrThrow).toBeCalledWith(
         'refreshToken',
         'user',
       );

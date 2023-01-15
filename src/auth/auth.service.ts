@@ -80,7 +80,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const refreshTokenEntity = await this.refreshTokensService.findOne(
+    const refreshTokenEntity = await this.refreshTokensService.findOneOrThrow(
       refreshTokenDTO.refreshToken,
       user,
     );

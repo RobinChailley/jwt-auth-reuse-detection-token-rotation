@@ -76,6 +76,26 @@ describe('UsersService', () => {
     });
   });
 
+  describe('findOneByEmailOrThrow', () => {
+    beforeEach(() => {
+      repository.findOne = jest.fn().mockResolvedValue('user');
+    });
+
+    it('should call repository.findOne', async () => {
+      await service.findOneByEmailOrThrow('test');
+
+      expect(repository.findOne).toBeCalledWith({ where: { email: 'test' } });
+    });
+
+    it('should throw if user not found', async () => {
+      repository.findOne = jest.fn().mockResolvedValue(null);
+
+      await expect(
+        service.findOneByEmailOrThrow('test'),
+      ).rejects.toThrowError();
+    });
+  });
+
   describe('findOneById', () => {
     beforeEach(() => {
       repository.findOne = jest.fn();
@@ -85,6 +105,24 @@ describe('UsersService', () => {
       await service.findOneById(30);
 
       expect(repository.findOne).toBeCalledWith({ where: { id: 30 } });
+    });
+  });
+
+  describe('findOneByIdOrThrow', () => {
+    beforeEach(() => {
+      repository.findOne = jest.fn().mockResolvedValue('user');
+    });
+
+    it('should call repository.findOne', async () => {
+      await service.findOneByIdOrThrow(30);
+
+      expect(repository.findOne).toBeCalledWith({ where: { id: 30 } });
+    });
+
+    it('should throw if user not found', async () => {
+      repository.findOne = jest.fn().mockResolvedValue(null);
+
+      await expect(service.findOneByIdOrThrow(30)).rejects.toThrowError();
     });
   });
 });
