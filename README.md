@@ -14,7 +14,7 @@ detection and token rotation.
     - [Sign in](#sign-in)
     - [Refresh](#refresh)
     - [Get me](#get-me)
-    - [Log out](#logout)
+    - [Log out](#log-out)
 
 ## Database Modelisation
 
