@@ -1,73 +1,114 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# 🔐 NestJS Auth JWT : Refresh token rotation and reuse detection
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+A small project created in NestJS (Typescript) to implement authentication with JWT,
+access token and refresh token.
+The goal of this project is to implement refresh token reuse
+detection and token rotation.
 
-## Description
+## 📜 Content table
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. [Database Modelisation](#database-modelisation)
+2. [Endpoints](#endpoints)
+    - [Sign up](#sign-up)
+    - [Sign in](#sign-in)
+    - [Refresh](#refresh)
+    - [Get me](#get-me)
+    - [Log out](#logout)
 
-## Installation
+## Database Modelisation
 
-```bash
-$ npm install
+### User
+| Field           | Type                                | 
+|-----------------|-------------------------------------|
+| ID              | [PK] integer                        |
+| email           | varchar                             |
+| hashPassword    | varchar                             |
+| salt            | varchar                             |
+| refreshTokens   | OneToMany: RefreshToken             |
+
+### RefreshToken
+| Field           | Type                                | 
+|-----------------|-------------------------------------|
+| ID              | [PK] integer                        |
+| refreshToken    | varchar                             |
+| user            | ManyToOne: User                     |
+
+
+## Endpoints
+
+### Sign up
 ```
-
-## Running the app
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+POST /api/v1/auth/signup
 ```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
+body: {
+    email: '',
+    password: ''
+}
+```
+When a user registers, the API creates a new user in the database, storing the email, and the hashed password.
+The API returns two generated tokens:
+- the access token (contains the user ID, and expires after 5 minutes)
+- the refresh token (contains the user ID, and expires after 365 days)
 
-## Support
+The API also stores the refresh token in the database, in relation (ManyToOne) with the just created user.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Sign in
+```
+POST /api/v1/auth/signin
+```
+```
+body: {
+    email: '',
+    password: ''
+}
+```
+When a user logs in, the API searches the database to see if a user exists with the email received in the body.
+If the user exists, the API checks if the password received in the body matches the hash stored in the database.
+If the password matches, the API returns two generated tokens:
+- the access token (contains the user ID, and expires after 5 minutes)
+- the refresh token (contains the user ID, and expires after 365 days)
 
-## Stay in touch
+The API also stores the refresh token in the database, in relation (ManyToOne) with the just logged in user.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Refresh
+```
+POST /api/v1/auth/refresh
+```
+```
+body: {
+    refreshToken: ''
+}
+```
+When the access token of a user expires (after 5 minutes), he must use his refresh token to ask the API for a new couple AccessToken / RefreshToken.
+The API decodes the refresh token, to get the user ID. The API then searches the database for the user via his ID.
 
-## License
+Then, the API searches the database for the refresh token received in the body.
+- If the refresh token exists, the API deletes it, and generates a new pair of tokens.
+- On the other hand, if the token does not exist, it means that it has already been used,
+    so that the user's tokens have been compromised. This is the token reuse detection.
+    In this case, the API deletes all the refresh tokens related to the user in question,
+    to encourage the user to reconnect ([/signin](#sign-in)).
 
-Nest is [MIT licensed](LICENSE).
+### Get me
+```
+GET /api/v1/users/me
+```
+This is a simple protected endpoint, that will return the user's information if the request is made with
+a valid access token in the request's headers. Otherwise, it will return 401 Unauthorized.
+
+
+### Log out
+```
+DELETE /api/v1/auth/logout
+```
+```
+body: {
+    refreshToken: ''
+}
+```
+This endpoint is called when the user decides to disconnect from the application to which this API is linked. 
+
+The API decodes the token to retrieve the user's ID, then searches for the user in the database.
+Then, the API looks for the refresh token received in the database, and deletes it.
