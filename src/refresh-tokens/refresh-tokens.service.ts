@@ -11,13 +11,15 @@ export class RefreshTokensService {
     private readonly refreshTokenRepository: Repository<RefreshTokenEntity>,
   ) {}
 
-  createAndSave(
+  async createAndSave(
     user: UserEntity,
     _refreshToken: string,
   ): Promise<RefreshTokenEntity> {
     const refreshToken = this.create(user, _refreshToken);
 
-    return refreshToken.save();
+    await this.save(refreshToken);
+
+    return refreshToken;
   }
 
   create(user: UserEntity, _refreshToken: string): RefreshTokenEntity {
