@@ -63,7 +63,7 @@ export class AuthService {
     );
 
     if (!refreshTokenEntity) {
-      this.refreshTokensService.deleteAllOfUser(user);
+      await this.refreshTokensService.deleteAllOfUser(user);
       throw new UnauthorizedException();
     }
 
@@ -92,11 +92,11 @@ export class AuthService {
     return this.jwtService.sign({ id: user.id }, { expiresIn });
   }
 
-  private generateTokensAndSave(user: UserEntity): TokensDTO {
+  private async generateTokensAndSave(user: UserEntity): Promise<TokensDTO> {
     const accessToken = this.generateToken(user, '5min');
     const refreshToken = this.generateToken(user, '365d');
 
-    this.refreshTokensService.createAndSave(user, refreshToken);
+    await this.refreshTokensService.createAndSave(user, refreshToken);
 
     return { accessToken, refreshToken };
   }

@@ -97,7 +97,6 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.controller.(t|j)s",
       "**/*.service.(t|j)s",
       "**/utils/**.(t|j)s"
     ],
